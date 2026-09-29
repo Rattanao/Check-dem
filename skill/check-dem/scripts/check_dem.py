@@ -12,6 +12,11 @@
 วิธีใช้
   python check_dem.py <ไฟล์ .xls/.xlsx> <ATA dd/mm/yyyy> [โฟลเดอร์ผลลัพธ์]
   python check_dem.py input\\DEM-KMGY.xls 27/09/2026
+
+ตัวเลือก
+  --cols C-F       ใช้เฉพาะคอลัมน์ C ถึง F ของต้นฉบับ (แบบฟอร์ม SUR: B/L No. | Freedays | RECEIPT B/L | Consignee)
+  --name START_DEM ตั้งชื่อไฟล์ผลลัพธ์ (ได้ START_DEM.xlsx) แทน "Check DEM.xlsx"
+  python check_dem.py input\\SUR.xls 27/09/2026 input --cols C-F --name START_DEM
 """
 import colorsys
 import re
@@ -22,7 +27,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
+from openpyxl.utils import column_index_from_string, get_column_letter
 
 TOS_EXTRA_DAYS = 3
 OUTPUT_NAME = "Check DEM.xlsx"
@@ -64,7 +69,21 @@ def date_palette(dates):
     return colors
 
 
+def pop_option(args, name):
+    """ดึงค่า --name value ออกจาก args ; ไม่มี -> None"""
+    if name in args:
+        i = args.index(name)
+        value = args[i + 1]
+        del args[i:i + 2]
+        return value
+    return None
+
+
 def main():
+    cols = pop_option(sys.argv, "--cols")
+    out_name = pop_option(sys.argv, "--name") or OUTPUT_NAME
+    if not out_name.lower().endswith(".xlsx"):
+        out_name += ".xlsx"
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
@@ -73,6 +92,9 @@ def main():
     ata = datetime.strptime(ata_text, "%d/%m/%Y")
 
     raw = pd.read_excel(src, header=None, dtype=str).fillna("")
+    if cols:
+        first, last = (column_index_from_string(c.strip()) - 1 for c in re.split(r"[-:]", cols.upper()))
+        raw = raw.iloc[:, first:last + 1]
     header = [str(h).strip() for h in raw.iloc[0]]
     rows = raw.iloc[1:].values.tolist()
 
@@ -213,7 +235,7 @@ def main():
 
     out_dir = Path(sys.argv[3]) if len(sys.argv) > 3 else src.resolve().parent.parent / "output"
     out_dir.mkdir(exist_ok=True)
-    out = out_dir / OUTPUT_NAME
+    out = out_dir / out_name
     wb.save(out)
     print(f"บันทึกแล้ว: {out}  ({len(data)} แถว, อ่าน Freedays ไม่ได้ {problems} แถว)")
 

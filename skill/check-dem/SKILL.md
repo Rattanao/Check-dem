@@ -36,6 +36,15 @@ Rattana's confirmed report format. Run the bundled script; do not rebuild the la
    - any row whose DEM. shows `CHECK`, meaning Freedays could not be parsed
 4. Send the user the output file.
 
+## SUR form (SUR.xls, in input/)
+
+Source columns: A POL | B Status | C B/L No. | D Freedays | E RECEIPT B/L | F Consignee.
+Use only columns **C-F**, and save the report into `input/` as **START_DEM.xlsx**:
+```bash
+PYTHONIOENCODING=utf-8 python "<skill dir>/scripts/check_dem.py" "input/SUR.xls" <ATA> "input" --cols C-F --name START_DEM
+```
+`--cols` restricts the source to that column range, and `--name` sets the output file name (".xlsx" is added).
+
 ## Report layout
 
 - Row 1 has a navy **CHECK DEM** banner.
