@@ -104,8 +104,8 @@
 const TOS_EXTRA_DAYS = 3;
 const OUTPUT_NAME = "Check DEM.xlsx";
 // SUR form: A POL | B Status | C B/L No. | D Freedays | E RECEIPT B/L | F Consignee
-// -> use only columns C-F and save as START_DEM.xlsx (same as check_dem.py --cols C-F --name START_DEM)
-const SUR = { first: 2, last: 5, outName: "START_DEM.xlsx" };
+// -> use only columns C-F and save as CHECK DEM.xlsx (same as check_dem.py --cols C-F --name "CHECK DEM")
+const SUR = { first: 2, last: 5, outName: "CHECK DEM.xlsx" };
 const isSurForm = h => /^pol$/i.test(h[0] || "") && /^status$/i.test(h[1] || "") && /freedays/i.test(h[3] || "");
 const NAVY = "1F3864", LINE = "BFBFBF";
 const $ = id => document.getElementById(id);

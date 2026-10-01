@@ -15,8 +15,8 @@
 
 ตัวเลือก
   --cols C-F       ใช้เฉพาะคอลัมน์ C ถึง F ของต้นฉบับ (แบบฟอร์ม SUR: B/L No. | Freedays | RECEIPT B/L | Consignee)
-  --name START_DEM ตั้งชื่อไฟล์ผลลัพธ์ (ได้ START_DEM.xlsx) แทน "Check DEM.xlsx"
-  python check_dem.py input\\SUR.xls 27/09/2026 input --cols C-F --name START_DEM
+  --name "CHECK DEM" ตั้งชื่อไฟล์ผลลัพธ์ (ได้ CHECK DEM.xlsx) แทน "Check DEM.xlsx"
+  python check_dem.py input\\SUR.xls 27/09/2026 input --cols C-F --name "CHECK DEM"
 """
 import colorsys
 import re
