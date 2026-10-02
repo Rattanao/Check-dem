@@ -4,19 +4,20 @@
   DEM  = ATA + (เลขตัวหน้าของ Freedays + เลขตัวหน้าหลัง ADD)
          เช่น "7/5 Add 7/9" -> 7 + 7 = 14 วัน ; ATA 27/09/2026 -> 11/10/2026
   TOTAL = จำนวนวันที่ได้จาก Freedays
-  REC. = ATA + 3 วัน  (เฉพาะแถวที่มีคำว่า TOS) ; ถ้าไม่มี TOS เว้นว่าง
+  REC. = ATA + 3 วัน  (เฉพาะแถวที่มีคำว่า TOS หรือ TPSZ เป็นตู้เย็น ขึ้นต้นด้วย R เช่น R40H) ; นอกนั้นเว้นว่าง
+         ตู้เย็น (R) ถือเป็น TOS 3 เสมอ เพราะต้องมีค่าไฟ
+  ฟอร์มต้นฉบับมีได้หลายแบบ : โปรแกรมหาหัวข้อที่ต้องใช้จากชื่อหัวข้อ (Freedays, TPSZ, B/L No., RECEIPT B/L, Consignee)
+         ไม่สนตำแหน่งคอลัมน์ ; หัวข้ออื่น (POL, STATUS ...) ไม่นำมาใช้ ; ผลลัพธ์ออกเป็นฟอร์มเดิมเสมอ
   DEM (และช่อง Freedays) วันเดียวกันได้สีเดียวกัน ไล่สีจากวันแรกสุด (แดง/ส้ม) ไปวันหลังสุด (เขียว/ฟ้า)
 
-ผลลัพธ์บันทึกเป็น output\\Check DEM.xlsx
+ผลลัพธ์บันทึกเป็น output\\CHECK DEM.xlsx
 
 วิธีใช้
   python check_dem.py <ไฟล์ .xls/.xlsx> <ATA dd/mm/yyyy> [โฟลเดอร์ผลลัพธ์]
   python check_dem.py input\\DEM-KMGY.xls 27/09/2026
 
 ตัวเลือก
-  --cols C-F       ใช้เฉพาะคอลัมน์ C ถึง F ของต้นฉบับ (แบบฟอร์ม SUR: B/L No. | Freedays | RECEIPT B/L | Consignee)
-  --name "CHECK DEM" ตั้งชื่อไฟล์ผลลัพธ์ (ได้ CHECK DEM.xlsx) แทน "Check DEM.xlsx"
-  python check_dem.py input\\SUR.xls 27/09/2026 input --cols C-F --name "CHECK DEM"
+  --name START_DEM ตั้งชื่อไฟล์ผลลัพธ์ (ได้ START_DEM.xlsx) แทน "CHECK DEM.xlsx"
 """
 import colorsys
 import re
@@ -27,10 +28,20 @@ from pathlib import Path
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import column_index_from_string, get_column_letter
+from openpyxl.utils import get_column_letter
 
 TOS_EXTRA_DAYS = 3
-OUTPUT_NAME = "Check DEM.xlsx"
+OUTPUT_NAME = "CHECK DEM.xlsx"
+
+# หัวข้อที่ต้องใช้ (จับจากชื่อหัวข้อ) ; รายงานเรียงเป็น No. | TPSZ | REC. | TOTAL | Freedays | DEM. | B/L No. | RECEIPT B/L | Consignee
+FREEDAYS = r"free\s*days?"
+FIELDS = [
+    ("TPSZ", r"tp\s*sz"),
+    ("B/L No.", r"b\s*/?\s*l\s*no"),
+    ("RECEIPT B/L", r"receipt"),
+    ("Consignee", r"consignee"),
+]
+REEFER = r"\s*R"  # TPSZ ขึ้นต้นด้วย R เช่น R40Hx1 = ตู้เย็น
 
 FONT = "Tahoma"
 NAVY = "1F3864"
@@ -50,9 +61,9 @@ def free_days(text):
     return total if found else None
 
 
-def find_col(header, name):
+def find_col(header, pattern):
     for i, h in enumerate(header):
-        if name.lower() in str(h).lower():
+        if re.search(pattern, str(h), re.I):
             return i
     return None
 
@@ -80,7 +91,6 @@ def pop_option(args, name):
 
 
 def main():
-    cols = pop_option(sys.argv, "--cols")
     out_name = pop_option(sys.argv, "--name") or OUTPUT_NAME
     if not out_name.lower().endswith(".xlsx"):
         out_name += ".xlsx"
@@ -92,16 +102,20 @@ def main():
     ata = datetime.strptime(ata_text, "%d/%m/%Y")
 
     raw = pd.read_excel(src, header=None, dtype=str).fillna("")
-    if cols:
-        first, last = (column_index_from_string(c.strip()) - 1 for c in re.split(r"[-:]", cols.upper()))
-        raw = raw.iloc[:, first:last + 1]
-    header = [str(h).strip() for h in raw.iloc[0]]
-    rows = raw.iloc[1:].values.tolist()
+    # แถวหัวข้อ = แถวแรกที่มีคำว่า Freedays (ไม่จำเป็นต้องเป็นแถวที่ 1)
+    values = raw.values.tolist()
+    h_row = next((i for i, r in enumerate(values[:30]) if find_col(r, FREEDAYS) is not None), None)
+    if h_row is None:
+        sys.exit("ไม่พบหัวข้อ Freedays ในไฟล์")
+    header = [str(h).strip() for h in values[h_row]]
+    rows = values[h_row + 1:]
 
-    c_free = find_col(header, "Freedays")
-    if c_free is None:
-        sys.exit("ไม่พบคอลัมน์ Freedays ในแถวแรกของไฟล์")
-    others = [i for i in range(len(header)) if i != c_free]
+    c_free = find_col(header, FREEDAYS)
+    fields = [(name, find_col(header, pattern)) for name, pattern in FIELDS]
+    fields = [(name, i) for name, i in fields if i is not None]
+    c_tpsz = dict(fields).get("TPSZ")
+    fields = [(name, i) for name, i in fields if name != "TPSZ"]
+    k = 0 if c_tpsz is None else 1  # มี TPSZ -> แทรกหลัง No. คอลัมน์ถัดไปเลื่อนไป 1 ช่อง
 
     # ---- คำนวณ ----
     data = []
@@ -112,8 +126,10 @@ def main():
         days = free_days(fd_text)
         dem = ata + timedelta(days=days) if days is not None else None
         has_tos = any(re.search(r"\bTOS\b", str(v), re.I) for v in r)
-        rec = ata + timedelta(days=TOS_EXTRA_DAYS) if has_tos else None
-        data.append((fd_text, days, dem, rec, [str(r[i]).strip() for i in others]))
+        reefer = c_tpsz is not None and re.match(REEFER, str(r[c_tpsz]), re.I) is not None
+        rec = ata + timedelta(days=TOS_EXTRA_DAYS) if has_tos or reefer else None
+        tpsz = [str(r[c_tpsz]).strip()] if k else []
+        data.append((fd_text, days, dem, rec, tpsz, [str(r[i]).strip() for _, i in fields]))
 
     colors = date_palette(d[2] for d in data if d[2] is not None)
 
@@ -128,7 +144,7 @@ def main():
     center = Alignment(horizontal="center", vertical="center")
     left = Alignment(horizontal="left", vertical="center", indent=1)
 
-    out_header = ["No.", "REC.", "TOTAL", "Freedays", "DEM."] + [header[i] for i in others]
+    out_header = ["No."] + ["TPSZ"] * k + ["REC.", "TOTAL", "Freedays", "DEM."] + [name for name, _ in fields]
     ncol = len(out_header)
     last_col = get_column_letter(ncol)
 
@@ -140,20 +156,20 @@ def main():
     ws["A1"].alignment = center
     ws.row_dimensions[1].height = 30
 
-    # ข้อมูลไฟล์ (แถวเดียวใต้ชื่อรายงาน)
-    info = [("ต้นฉบับ", src.name, None), ("ATA", ata, "DD/MM/YYYY"), ("จำนวน B/L", len(data), None)]
-    for i, (label, value, fmt) in enumerate(info):
-        a = ws.cell(row=2, column=1 + i * 2, value=label)
-        b = ws.cell(row=2, column=2 + i * 2, value=value)
-        a.font = Font(name=FONT, bold=True, color=NAVY)
-        a.fill = PatternFill("solid", fgColor="D9E1F2")
-        a.alignment = left
-        b.font = Font(name=FONT, bold=(label == "ATA"), size=12 if label == "ATA" else 10)
-        b.alignment = center if label == "ATA" else left
-        for c in (a, b):
-            c.border = box
-        if fmt:
-            b.number_format = fmt
+    # ข้อมูลไฟล์ (แถวเดียวใต้ชื่อรายงาน) : จำนวน B/L ชิดซ้าย | ต้นฉบับ ใต้ Freedays-DEM. | ATA สองช่องสุดท้าย
+    info = [("จำนวน B/L", len(data), 1), ("ต้นฉบับ", src.name, 4 + k), ("ATA", ata, ncol - 1)]
+    for col in range(1, ncol + 1):
+        ws.cell(row=2, column=col).border = box
+    for label, value, col in info:
+        a = ws.cell(row=2, column=col, value=label)
+        b = ws.cell(row=2, column=col + 1, value=value)
+        a.font = Font(name=FONT, bold=True)
+        a.fill = PatternFill("solid", fgColor="BDD7EE")
+        b.font = Font(name=FONT, bold=(label != "จำนวน B/L"), size=12 if label == "ATA" else 10)
+        b.fill = PatternFill("solid", fgColor="DDEBF7")
+        a.alignment = b.alignment = center
+        if label == "ATA":
+            b.number_format = "DD/MM/YYYY"
     ws.row_dimensions[2].height = 22
 
     # หัวตาราง
@@ -169,10 +185,10 @@ def main():
 
     # รายการ
     problems = 0
-    for n, (fd_text, days, dem, rec, rest) in enumerate(data, 1):
+    for n, (fd_text, days, dem, rec, tpsz, rest) in enumerate(data, 1):
         row = hr + n
         ws.row_dimensions[row].height = 20
-        values = [n, rec, days, fd_text, dem if dem else "CHECK"] + rest
+        values = [n] + tpsz + [rec, days, fd_text, dem if dem else "CHECK"] + rest
         stripe = PatternFill("solid", fgColor="F7F9FC" if n % 2 == 0 else "FFFFFF")
         for col, v in enumerate(values, 1):
             c = ws.cell(row=row, column=col, value=v if v != "" else None)
@@ -181,24 +197,24 @@ def main():
             h = out_header[col - 1]
             c.alignment = left if h in ("Consignee", "Freedays") else center
 
-        ws.cell(row=row, column=3).font = Font(name=FONT, bold=True)
-        dem_cell = ws.cell(row=row, column=5)
+        ws.cell(row=row, column=3 + k).font = Font(name=FONT, bold=True)
+        dem_cell = ws.cell(row=row, column=5 + k)
         dem_cell.number_format = "DD/MM/YYYY"
         dem_cell.font = Font(name=FONT, bold=True)
         if dem:
             dem_cell.fill = PatternFill("solid", fgColor=colors[dem])
-            ws.cell(row=row, column=4).fill = PatternFill("solid", fgColor=colors[dem])
+            ws.cell(row=row, column=4 + k).fill = PatternFill("solid", fgColor=colors[dem])
         else:
             dem_cell.fill = PatternFill("solid", fgColor="FF0000")
             dem_cell.font = Font(name=FONT, bold=True, color="FFFFFF")
             problems += 1
 
-        rec_cell = ws.cell(row=row, column=2)
+        rec_cell = ws.cell(row=row, column=2 + k)
         rec_cell.number_format = "DD/MM/YYYY"
         if rec:
             rec_cell.font = Font(name=FONT, bold=True, color="C00000")
             rec_cell.fill = PatternFill("solid", fgColor="FCE4D6")
-            ws.cell(row=row, column=4).font = Font(name=FONT, bold=True, color="C00000")
+            ws.cell(row=row, column=4 + k).font = Font(name=FONT, bold=True, color="C00000")
 
         for col in receipt_cols:
             c = ws.cell(row=row, column=col)
@@ -207,7 +223,6 @@ def main():
 
     # ขนาดคอลัมน์ให้พอดีกับตัวอักษรที่ยาวที่สุดในแต่ละช่อง
     for col in range(1, ncol + 1):
-        longest = 0
         # หัวตารางตัดบรรทัดได้ จึงนับแค่คำที่ยาวที่สุดของหัวตาราง
         longest = max(len(w) for w in out_header[col - 1].split())
         # นับทั้งกล่องข้อมูล ด้านบนและรายการ ; ตัวหนา/ตัวใหญ่ต้องใช้ที่มากขึ้น
