@@ -2,7 +2,7 @@
 
 กติกา
   DEM  = ATA + (เลขตัวหน้าของ Freedays + เลขตัวหน้าหลัง ADD)
-         เช่น "7/5 Add 7/9" -> 7 + 7 = 14 วัน ; ATA 27/09/2026 -> 2026-10-11
+         เช่น "7/5 Add 7/9" -> 7 + 7 = 14 วัน ; ATA 27/09/2026 -> 11/10/2026
   TOTAL = จำนวนวันที่ได้จาก Freedays
   REC. = ATA + 3 วัน  (เฉพาะแถวที่มีคำว่า TOS) ; ถ้าไม่มี TOS เว้นว่าง
   DEM (และช่อง Freedays) วันเดียวกันได้สีเดียวกัน ไล่สีจากวันแรกสุด (แดง/ส้ม) ไปวันหลังสุด (เขียว/ฟ้า)
@@ -183,7 +183,7 @@ def main():
 
         ws.cell(row=row, column=3).font = Font(name=FONT, bold=True)
         dem_cell = ws.cell(row=row, column=5)
-        dem_cell.number_format = "YYYY-MM-DD"
+        dem_cell.number_format = "DD/MM/YYYY"
         dem_cell.font = Font(name=FONT, bold=True)
         if dem:
             dem_cell.fill = PatternFill("solid", fgColor=colors[dem])

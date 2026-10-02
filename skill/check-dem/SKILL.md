@@ -16,7 +16,7 @@ Rattana's confirmed report format. Run the bundled script; do not rebuild the la
 ## Rules (already implemented in the script)
 
 - **TOTAL** = first number of Freedays + first number after `Add` → `7/5 Add 7/9` = 7 + 7 = 14
-- **DEM.** = ATA + TOTAL days → ATA 27/09/2026 → 2026-10-11
+- **DEM.** = ATA + TOTAL days → ATA 27/09/2026 → 11/10/2026 (shown as DD/MM/YYYY)
 - **REC.** = ATA + 3 days, only when the row contains `TOS` (otherwise blank). The number after TOS is ignored.
 - DEM. cells with the same date share a color (gradient red → blue from earliest to latest). The Freedays cell takes the same color as its DEM. cell.
 

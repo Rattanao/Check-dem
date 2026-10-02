@@ -207,7 +207,7 @@ function render() {
   const counts = {};
   data.forEach(x => { if (x.dem) counts[ymd(x.dem)] = (counts[ymd(x.dem)] || 0) + 1; });
   $("chips").innerHTML = Object.keys(counts).sort().map(k =>
-    `<span class="chip ${hidden.has(k) ? "off" : ""}" data-k="${k}" style="background:#${colors[k]}" title="คลิกเพื่อซ่อน/แสดง">DEM ${k}<small>${counts[k]} B/L</small></span>`).join("");
+    `<span class="chip ${hidden.has(k) ? "off" : ""}" data-k="${k}" style="background:#${colors[k]}" title="คลิกเพื่อซ่อน/แสดง">DEM ${k.split("-").reverse().join("/")}<small>${counts[k]} B/L</small></span>`).join("");
 
   $("thead").innerHTML = "<tr>" + header.map(h => `<th>${escapeHtml(h)}</th>`).join("") + "</tr>";
   const q = $("search").value.trim().toLowerCase();
@@ -223,7 +223,7 @@ function render() {
     }).join("");
     return `<tr class="${x.rec ? "tos" : ""}"><td>${x.no}</td><td class="${x.rec ? "rec" : ""}">${x.rec ? dmy(x.rec) : ""}</td>` +
       `<td class="b">${x.days ?? ""}</td><td class="l fd" ${bg}>${escapeHtml(x.fd)}</td>` +
-      (x.dem ? `<td class="b" ${bg}>${ymd(x.dem)}</td>` : `<td class="bad">CHECK</td>`) + `${rest}</tr>`;
+      (x.dem ? `<td class="b" ${bg}>${dmy(x.dem)}</td>` : `<td class="bad">CHECK</td>`) + `${rest}</tr>`;
   }).join("");
   $("download").textContent = "ดาวน์โหลด " + report.outName;
   $("result").classList.remove("hidden");
@@ -282,7 +282,7 @@ async function download() {
     });
     ws.getCell(row, 3).font = { name: FONT, bold: true };
     const dc = ws.getCell(row, 5);
-    dc.numFmt = "YYYY-MM-DD"; dc.font = { name: FONT, bold: true };
+    dc.numFmt = "DD/MM/YYYY"; dc.font = { name: FONT, bold: true };
     if (x.dem) {
       dc.fill = fill(colors[ymd(x.dem)]); ws.getCell(row, 4).fill = fill(colors[ymd(x.dem)]);
     } else {
