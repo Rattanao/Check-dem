@@ -128,7 +128,7 @@ def main():
     center = Alignment(horizontal="center", vertical="center")
     left = Alignment(horizontal="left", vertical="center", indent=1)
 
-    out_header = ["No.", "Freedays", "TOTAL", "DEM.", "REC."] + [header[i] for i in others]
+    out_header = ["No.", "REC.", "TOTAL", "Freedays", "DEM."] + [header[i] for i in others]
     ncol = len(out_header)
     last_col = get_column_letter(ncol)
 
@@ -172,7 +172,7 @@ def main():
     for n, (fd_text, days, dem, rec, rest) in enumerate(data, 1):
         row = hr + n
         ws.row_dimensions[row].height = 20
-        values = [n, fd_text, days, dem if dem else "CHECK", rec] + rest
+        values = [n, rec, days, fd_text, dem if dem else "CHECK"] + rest
         stripe = PatternFill("solid", fgColor="F7F9FC" if n % 2 == 0 else "FFFFFF")
         for col, v in enumerate(values, 1):
             c = ws.cell(row=row, column=col, value=v if v != "" else None)
@@ -182,23 +182,23 @@ def main():
             c.alignment = left if h in ("Consignee", "Freedays") else center
 
         ws.cell(row=row, column=3).font = Font(name=FONT, bold=True)
-        dem_cell = ws.cell(row=row, column=4)
+        dem_cell = ws.cell(row=row, column=5)
         dem_cell.number_format = "YYYY-MM-DD"
         dem_cell.font = Font(name=FONT, bold=True)
         if dem:
             dem_cell.fill = PatternFill("solid", fgColor=colors[dem])
-            ws.cell(row=row, column=2).fill = PatternFill("solid", fgColor=colors[dem])
+            ws.cell(row=row, column=4).fill = PatternFill("solid", fgColor=colors[dem])
         else:
             dem_cell.fill = PatternFill("solid", fgColor="FF0000")
             dem_cell.font = Font(name=FONT, bold=True, color="FFFFFF")
             problems += 1
 
-        rec_cell = ws.cell(row=row, column=5)
+        rec_cell = ws.cell(row=row, column=2)
         rec_cell.number_format = "DD/MM/YYYY"
         if rec:
             rec_cell.font = Font(name=FONT, bold=True, color="C00000")
             rec_cell.fill = PatternFill("solid", fgColor="FCE4D6")
-            ws.cell(row=row, column=2).font = Font(name=FONT, bold=True, color="C00000")
+            ws.cell(row=row, column=4).font = Font(name=FONT, bold=True, color="C00000")
 
         for col in receipt_cols:
             c = ws.cell(row=row, column=col)

@@ -49,7 +49,7 @@ PYTHONIOENCODING=utf-8 python "<skill dir>/scripts/check_dem.py" "input/SUR.xls"
 
 - Row 1 has a navy **CHECK DEM** banner.
 - Row 2 is one info line: ต้นฉบับ | file | ATA | date | จำนวน B/L | count.
-- Row 4 holds the table header, with columns in this order: No. | Freedays | TOTAL | DEM. | REC. | then the source's other columns (B/L No., RECEIPT B/L, Consignee).
+- Row 4 holds the table header, with columns in this order: No. | REC. | TOTAL | Freedays | DEM. | then the source's other columns (B/L No., RECEIPT B/L, Consignee).
 - RECEIPT B/L has a yellow fill with red bold text. TOS rows have red bold text, and their REC. cell has an orange fill.
 - Column widths auto-fit the text, including bold/12pt ATA so it never shows `####`. The sheet is set to A4 portrait, 1 page wide, with the header row repeated on every printed page.
 

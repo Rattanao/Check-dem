@@ -24,7 +24,7 @@
 ## รายงานที่ได้ (output/Check DEM.xlsx)
 
 - แถบหัวรายงาน **CHECK DEM** และแถวข้อมูล ต้นฉบับ | ATA | จำนวน B/L
-- ตารางมีคอลัมน์ No. | Freedays | TOTAL | DEM. | REC. | B/L No. | RECEIPT B/L | Consignee
+- ตารางมีคอลัมน์ No. | REC. | TOTAL | Freedays | DEM. | B/L No. | RECEIPT B/L | Consignee
 - **ช่อง DEM. และ Freedays ที่เป็นวันเดียวกันจะเป็นสีเดียวกัน** สีไล่จากวันแรกสุด (แดง) ไปวันหลังสุด (ฟ้า)
 - แถวที่มี TOS จะเป็นตัวหนาสีแดง และช่อง REC. มีพื้นสีส้ม
 - ช่อง RECEIPT B/L เป็นพื้นเหลือง ตัวแดง

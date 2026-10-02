@@ -188,7 +188,7 @@ function compute() {
              rest: others.map(i => String(r[i] ?? "").trim()) };
   });
   const colors = palette(data.filter(x => x.dem).map(x => ymd(x.dem)));
-  report = { ata, data, colors, header: ["No.", "Freedays", "TOTAL", "DEM.", "REC.", ...others.map(i => src.header[i])], name: src.name, outName: src.outName };
+  report = { ata, data, colors, header: ["No.", "REC.", "TOTAL", "Freedays", "DEM.", ...others.map(i => src.header[i])], name: src.name, outName: src.outName };
   hidden.clear(); $("search").value = "";
   render();
 }
@@ -221,10 +221,9 @@ function render() {
       const cls = /receipt/i.test(h) ? "receipt" : /consignee/i.test(h) ? "l" : "";
       return `<td class="${cls}">${escapeHtml(v)}</td>`;
     }).join("");
-    return `<tr class="${x.rec ? "tos" : ""}"><td>${x.no}</td><td class="l fd" ${bg}>${escapeHtml(x.fd)}</td>` +
-      `<td class="b">${x.days ?? ""}</td>` +
-      (x.dem ? `<td class="b" ${bg}>${ymd(x.dem)}</td>` : `<td class="bad">CHECK</td>`) +
-      `<td class="${x.rec ? "rec" : ""}">${x.rec ? dmy(x.rec) : ""}</td>${rest}</tr>`;
+    return `<tr class="${x.rec ? "tos" : ""}"><td>${x.no}</td><td class="${x.rec ? "rec" : ""}">${x.rec ? dmy(x.rec) : ""}</td>` +
+      `<td class="b">${x.days ?? ""}</td><td class="l fd" ${bg}>${escapeHtml(x.fd)}</td>` +
+      (x.dem ? `<td class="b" ${bg}>${ymd(x.dem)}</td>` : `<td class="bad">CHECK</td>`) + `${rest}</tr>`;
   }).join("");
   $("download").textContent = "ดาวน์โหลด " + report.outName;
   $("result").classList.remove("hidden");
@@ -274,7 +273,7 @@ async function download() {
   data.forEach((x, n) => {
     const row = hr + 1 + n;
     ws.getRow(row).height = 20;
-    const values = [x.no, x.fd, x.days, x.dem ? new Date(x.dem) : "CHECK", x.rec ? new Date(x.rec) : null, ...x.rest];
+    const values = [x.no, x.rec ? new Date(x.rec) : null, x.days, x.fd, x.dem ? new Date(x.dem) : "CHECK", ...x.rest];
     const stripe = fill(n % 2 ? "F7F9FC" : "FFFFFF");
     values.forEach((v, i) => {
       const c = ws.getCell(row, i + 1);
@@ -282,18 +281,18 @@ async function download() {
       c.alignment = ["Consignee", "Freedays"].includes(header[i]) ? left : center;
     });
     ws.getCell(row, 3).font = { name: FONT, bold: true };
-    const dc = ws.getCell(row, 4);
+    const dc = ws.getCell(row, 5);
     dc.numFmt = "YYYY-MM-DD"; dc.font = { name: FONT, bold: true };
     if (x.dem) {
-      dc.fill = fill(colors[ymd(x.dem)]); ws.getCell(row, 2).fill = fill(colors[ymd(x.dem)]);
+      dc.fill = fill(colors[ymd(x.dem)]); ws.getCell(row, 4).fill = fill(colors[ymd(x.dem)]);
     } else {
       dc.fill = fill("FF0000"); dc.font = { name: FONT, bold: true, color: { argb: "FFFFFFFF" } };
     }
-    const rc = ws.getCell(row, 5);
+    const rc = ws.getCell(row, 2);
     rc.numFmt = "DD/MM/YYYY";
     if (x.rec) {
       rc.font = { name: FONT, bold: true, color: { argb: "FFC00000" } }; rc.fill = fill("FCE4D6");
-      ws.getCell(row, 2).font = { name: FONT, bold: true, color: { argb: "FFC00000" } };
+      ws.getCell(row, 4).font = { name: FONT, bold: true, color: { argb: "FFC00000" } };
     }
     header.forEach((h, i) => {
       if (/receipt/i.test(h)) {
