@@ -37,6 +37,8 @@
 
 เปิดที่ **https://rattanao.github.io/Check-dem/**
 
+คู่มือวิธีใช้แบบละเอียด: **https://rattanao.github.io/Check-dem/guide.html**
+
 1. ลากไฟล์ Freedays มาวาง หรือคลิกเพื่อเลือกไฟล์
 2. เลือกวันที่ ATA แล้วกด **คำนวณ**
 3. ตารางบนหน้าจอจะแสดงสีตามวัน DEM. คลิกป้ายวันที่เพื่อซ่อนหรือแสดงวันนั้น และค้นหา B/L หรือ Consignee ได้
@@ -55,6 +57,8 @@ pip install -r requirements.txt
 ## วิธีใช้
 
 ### แบบที่ 1: ดับเบิลคลิก (Windows)
+
+ครั้งแรกต้องต่ออินเทอร์เน็ต `run_check_dem.bat` จะติดตั้งไลบรารีที่ต้องใช้ให้เอง
 
 1. วางไฟล์ต้นฉบับไว้ในโฟลเดอร์ `input`
 2. ดับเบิลคลิก `run_check_dem.bat`
@@ -83,6 +87,8 @@ python check_dem.py input/DEM-KMGY.xls 27/09/2026 D:/reports
 
 ```
 index.html                เว็บ Check DEM (GitHub Pages)
+guide.html                หน้าวิธีใช้
+assets/hal-logo.png       โลโก้ Heung A Line
 check_dem.py              โปรแกรมหลัก
 run_check_dem.bat         ตัวรันแบบดับเบิลคลิก (Windows)
 requirements.txt          ไลบรารีที่ต้องใช้
