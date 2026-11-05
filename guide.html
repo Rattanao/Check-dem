@@ -229,6 +229,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
           <li><b>Freedays</b> (ต้องมี)</li>
           <li>TPSZ</li>
           <li>B/L No.</li>
+          <li>POL</li>
           <li>RECEIPT B/L</li>
           <li>Consignee</li>
         </ul>
@@ -236,7 +237,7 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
       <div>
         <h3>ไม่นำมาใช้</h3>
         <ul class="check-list">
-          <li>หัวข้ออื่นทั้งหมด เช่น POL, STATUS</li>
+          <li>หัวข้ออื่นทั้งหมด เช่น STATUS, ETA, Description</li>
           <li>หัวตารางไม่จำเป็นต้องอยู่แถวแรก โปรแกรมหาแถวที่มีคำว่า Freedays เอง</li>
           <li>รายงานออกมาเป็นฟอร์มเดิมเสมอ ไม่ว่าต้นฉบับจะเรียงคอลัมน์แบบไหน</li>
         </ul>
@@ -250,15 +251,15 @@ footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 4px; }
     <div class="sheet-scroll">
       <table class="sheet">
         <thead>
-          <tr class="info"><td class="k">จำนวน B/L</td><td class="v">25</td><td></td><td></td><td class="k">ต้นฉบับ</td><td class="v b">SUR.xls</td><td></td><td class="k">ATA</td><td class="v b">04/10/2026</td></tr>
-          <tr><th>No.</th><th>TPSZ</th><th>REC.</th><th>TOTAL</th><th>Freedays</th><th>DEM.</th><th>B/L No.</th><th>RECEIPT B/L</th><th>Consignee</th></tr>
+          <tr class="info"><td class="k">จำนวน B/L</td><td class="v">25</td><td></td><td></td><td class="k">ต้นฉบับ</td><td class="v b">SUR.xls</td><td></td><td></td><td class="k">ATA</td><td class="v b">04/10/2026</td></tr>
+          <tr><th>No.</th><th>TPSZ</th><th>REC.</th><th>Freedays</th><th>TOTAL</th><th>DEM.</th><th>B/L No.</th><th>POL</th><th>RECEIPT B/L</th><th>Consignee</th></tr>
         </thead>
         <tbody>
-          <tr><td>1</td><td class="mono">40Hx1</td><td></td><td class="b">14</td><td class="l d2">7/5 Add 7/9</td><td class="b d2">18/10/2026</td><td class="mono">HASLC…0001</td><td class="rcpt">SUR</td><td class="l">ABC LOGISTICS CO.,LTD.</td></tr>
-          <tr><td>2</td><td class="mono">20'x2</td><td></td><td class="b">21</td><td class="l d3">7/5 Add 14/2</td><td class="b d3">25/10/2026</td><td class="mono">HASLC…0002</td><td class="rcpt"></td><td class="l">TO THE ORDER OF XYZ BANK</td></tr>
-          <tr><td>3</td><td class="mono">20TKx1</td><td></td><td class="b"></td><td class="l"></td><td class="bad">CHECK</td><td class="mono">HASLC…0003</td><td class="rcpt">SUR</td><td class="l">DEF TRADING CO.,LTD.</td></tr>
-          <tr><td>4</td><td class="mono">R40Hx3</td><td class="recx">07/10/2026</td><td class="b">5</td><td class="l d1 tos">3/3 Add 2/4</td><td class="b d1">09/10/2026</td><td class="mono">HASLC…0004</td><td class="rcpt">SUR</td><td class="l">GHI FOOD CO.,LTD.</td></tr>
-          <tr><td>5</td><td class="mono">40Hx1</td><td class="recx">07/10/2026</td><td class="b">5</td><td class="l d1 tos">3/3 Add 2/4 TOS 3</td><td class="b d1">09/10/2026</td><td class="mono">HASLC…0005</td><td class="rcpt">SWB</td><td class="l">JKL SEAFOOD CO.,LTD.</td></tr>
+          <tr><td>1</td><td class="mono">40Hx1</td><td></td><td class="l d2">7/5 Add 7/9</td><td class="b">14</td><td class="b d2">18/10/2026</td><td class="mono">HASLC…0001</td><td class="mono">CNTAO</td><td class="rcpt">SUR</td><td class="l">ABC LOGISTICS CO.,LTD.</td></tr>
+          <tr><td>2</td><td class="mono">20'x2</td><td></td><td class="l d3">7/5 Add 14/2</td><td class="b">21</td><td class="b d3">25/10/2026</td><td class="mono">HASLC…0002</td><td class="mono">CNTAO</td><td class="rcpt"></td><td class="l">TO THE ORDER OF XYZ BANK</td></tr>
+          <tr><td>3</td><td class="mono">20TKx1</td><td></td><td class="l"></td><td class="b"></td><td class="bad">CHECK</td><td class="mono">HASLC…0003</td><td class="mono">CNTAO</td><td class="rcpt">SUR</td><td class="l">DEF TRADING CO.,LTD.</td></tr>
+          <tr><td>4</td><td class="mono">R40Hx3</td><td class="recx">07/10/2026</td><td class="l d1 tos">3/3 Add 2/4</td><td class="b">5</td><td class="b d1">09/10/2026</td><td class="mono">HASLC…0004</td><td class="mono">CNTAO</td><td class="rcpt">SUR</td><td class="l">GHI FOOD CO.,LTD.</td></tr>
+          <tr><td>5</td><td class="mono">40Hx1</td><td class="recx">07/10/2026</td><td class="l d1 tos">3/3 Add 2/4 TOS 3</td><td class="b">5</td><td class="b d1">09/10/2026</td><td class="mono">HASLC…0005</td><td class="mono">CNTAO</td><td class="rcpt">SWB</td><td class="l">JKL SEAFOOD CO.,LTD.</td></tr>
         </tbody>
       </table>
     </div>

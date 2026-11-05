@@ -6,7 +6,7 @@
   TOTAL = จำนวนวันที่ได้จาก Freedays
   REC. = ATA + 3 วัน  (เฉพาะแถวที่มีคำว่า TOS หรือ TPSZ เป็นตู้เย็น ขึ้นต้นด้วย R เช่น R40H) ; นอกนั้นเว้นว่าง
          ตู้เย็น (R) ถือเป็น TOS 3 เสมอ เพราะต้องมีค่าไฟ
-  ฟอร์มต้นฉบับมีได้หลายแบบ : โปรแกรมหาหัวข้อที่ต้องใช้จากชื่อหัวข้อ (Freedays, TPSZ, B/L No., RECEIPT B/L, Consignee)
+  ฟอร์มต้นฉบับมีได้หลายแบบ : โปรแกรมหาหัวข้อที่ต้องใช้จากชื่อหัวข้อ (Freedays, TPSZ, B/L No., POL, RECEIPT B/L, Consignee)
          ไม่สนตำแหน่งคอลัมน์ ; หัวข้ออื่น (POL, STATUS ...) ไม่นำมาใช้ ; ผลลัพธ์ออกเป็นฟอร์มเดิมเสมอ
   DEM (และช่อง Freedays) วันเดียวกันได้สีเดียวกัน ไล่สีจากวันแรกสุด (แดง/ส้ม) ไปวันหลังสุด (เขียว/ฟ้า)
 
@@ -33,15 +33,16 @@ from openpyxl.utils import get_column_letter
 TOS_EXTRA_DAYS = 3
 OUTPUT_NAME = "CHECK DEM.xlsx"
 
-# หัวข้อที่ต้องใช้ (จับจากชื่อหัวข้อ) ; รายงานเรียงเป็น No. | TPSZ | REC. | TOTAL | Freedays | DEM. | B/L No. | RECEIPT B/L | Consignee
+# หัวข้อที่ต้องใช้ (จับจากชื่อหัวข้อ) ; รายงานเรียงเป็น No. | TPSZ | REC. | Freedays | TOTAL | DEM. | B/L No. | POL | RECEIPT B/L | Consignee
 FREEDAYS = r"free\s*days?"
 FIELDS = [
     ("TPSZ", r"tp\s*sz"),
     ("B/L No.", r"b\s*/?\s*l\s*no"),
+    ("POL", r"^\s*pol\s*$"),
     ("RECEIPT B/L", r"receipt"),
     ("Consignee", r"consignee"),
 ]
-REEFER = r"\s*R"  # TPSZ ขึ้นต้นด้วย R เช่น R40Hx1 = ตู้เย็น
+REEFER = r"(?:^|[\s,/])R\d"  # TPSZ มีตู้ขึ้นต้นด้วย R เช่น R40Hx1 หรือ 20'x1 R40Hx1 = ตู้เย็น
 
 FONT = "Tahoma"
 NAVY = "1F3864"
@@ -125,8 +126,10 @@ def main():
         fd_text = str(r[c_free]).strip()
         days = free_days(fd_text)
         dem = ata + timedelta(days=days) if days is not None else None
-        has_tos = any(re.search(r"\bTOS\b", str(v), re.I) for v in r)
-        reefer = c_tpsz is not None and re.match(REEFER, str(r[c_tpsz]), re.I) is not None
+        # หาคำว่า TOS เฉพาะในหัวข้อที่ใช้งาน (ฟอร์มกว้างมีช่อง Description/Remark ที่ไม่เกี่ยว)
+        used = [c_free] + [i for _, i in fields] + ([c_tpsz] if k else [])
+        has_tos = any(re.search(r"\bTOS\b", str(r[i]), re.I) for i in used)
+        reefer = c_tpsz is not None and re.search(REEFER, str(r[c_tpsz]).strip(), re.I) is not None
         rec = ata + timedelta(days=TOS_EXTRA_DAYS) if has_tos or reefer else None
         tpsz = [str(r[c_tpsz]).strip()] if k else []
         data.append((fd_text, days, dem, rec, tpsz, [str(r[i]).strip() for _, i in fields]))
@@ -144,7 +147,7 @@ def main():
     center = Alignment(horizontal="center", vertical="center")
     left = Alignment(horizontal="left", vertical="center", indent=1)
 
-    out_header = ["No."] + ["TPSZ"] * k + ["REC.", "TOTAL", "Freedays", "DEM."] + [name for name, _ in fields]
+    out_header = ["No."] + ["TPSZ"] * k + ["REC.", "Freedays", "TOTAL", "DEM."] + [name for name, _ in fields]
     ncol = len(out_header)
     last_col = get_column_letter(ncol)
 
@@ -188,7 +191,7 @@ def main():
     for n, (fd_text, days, dem, rec, tpsz, rest) in enumerate(data, 1):
         row = hr + n
         ws.row_dimensions[row].height = 20
-        values = [n] + tpsz + [rec, days, fd_text, dem if dem else "CHECK"] + rest
+        values = [n] + tpsz + [rec, fd_text, days, dem if dem else "CHECK"] + rest
         stripe = PatternFill("solid", fgColor="F7F9FC" if n % 2 == 0 else "FFFFFF")
         for col, v in enumerate(values, 1):
             c = ws.cell(row=row, column=col, value=v if v != "" else None)
@@ -197,13 +200,13 @@ def main():
             h = out_header[col - 1]
             c.alignment = left if h in ("Consignee", "Freedays") else center
 
-        ws.cell(row=row, column=3 + k).font = Font(name=FONT, bold=True)
+        ws.cell(row=row, column=4 + k).font = Font(name=FONT, bold=True)
         dem_cell = ws.cell(row=row, column=5 + k)
         dem_cell.number_format = "DD/MM/YYYY"
         dem_cell.font = Font(name=FONT, bold=True)
         if dem:
             dem_cell.fill = PatternFill("solid", fgColor=colors[dem])
-            ws.cell(row=row, column=4 + k).fill = PatternFill("solid", fgColor=colors[dem])
+            ws.cell(row=row, column=3 + k).fill = PatternFill("solid", fgColor=colors[dem])
         else:
             dem_cell.fill = PatternFill("solid", fgColor="FF0000")
             dem_cell.font = Font(name=FONT, bold=True, color="FFFFFF")
@@ -214,7 +217,7 @@ def main():
         if rec:
             rec_cell.font = Font(name=FONT, bold=True, color="C00000")
             rec_cell.fill = PatternFill("solid", fgColor="FCE4D6")
-            ws.cell(row=row, column=4 + k).font = Font(name=FONT, bold=True, color="C00000")
+            ws.cell(row=row, column=3 + k).font = Font(name=FONT, bold=True, color="C00000")
 
         for col in receipt_cols:
             c = ws.cell(row=row, column=col)

@@ -111,8 +111,8 @@ const OUTPUT_NAME = "CHECK DEM.xlsx";
 // Source forms vary: the needed headings are found by name, not by column position (same as check_dem.py).
 // Other headings (POL, STATUS ...) are ignored; the report always comes out in the same form.
 const FREEDAYS = /free\s*days?/i;
-const FIELDS = [["TPSZ", /tp\s*sz/i], ["B/L No.", /b\s*\/?\s*l\s*no/i], ["RECEIPT B/L", /receipt/i], ["Consignee", /consignee/i]];
-const REEFER = /^\s*R/i;   // TPSZ starting with R (e.g. R40Hx1) = reefer = always TOS 3
+const FIELDS = [["TPSZ", /tp\s*sz/i], ["B/L No.", /b\s*\/?\s*l\s*no/i], ["POL", /^\s*pol\s*$/i], ["RECEIPT B/L", /receipt/i], ["Consignee", /consignee/i]];
+const REEFER = /(^|[\s,\/])R\d/i;   // a TPSZ container starting with R (e.g. R40Hx1, or 20'x1 R40Hx1) = reefer = always TOS 3
 const NAVY = "1F3864", LINE = "BFBFBF";
 const $ = id => document.getElementById(id);
 let src = null;      // {name, header, rows}
@@ -188,12 +188,12 @@ function compute() {
     const fd = String(r[cFree] ?? "").trim();
     const days = freeDays(fd);
     const dem = days === null ? null : addDays(ata, days);
-    const tos = r.some(v => /\bTOS\b/i.test(String(v))) || (cTpsz >= 0 && REEFER.test(r[cTpsz]));
+    const tos = r.some(v => /\bTOS\b/i.test(String(v))) || (cTpsz >= 0 && REEFER.test(String(r[cTpsz]).trim()));
     return { no: idx + 1, fd, days, dem, rec: tos ? addDays(ata, TOS_EXTRA_DAYS) : null,
              tpsz: hasTpsz ? [r[cTpsz]] : [], rest: others.map(i => String(r[i] ?? "").trim()) };
   });
   const colors = palette(data.filter(x => x.dem).map(x => ymd(x.dem)));
-  report = { ata, data, colors, header: ["No.", ...(hasTpsz ? ["TPSZ"] : []), "REC.", "TOTAL", "Freedays", "DEM.", ...others.map(i => src.header[i])],
+  report = { ata, data, colors, header: ["No.", ...(hasTpsz ? ["TPSZ"] : []), "REC.", "Freedays", "TOTAL", "DEM.", ...others.map(i => src.header[i])],
              off: hasTpsz ? 1 : 0, name: src.name };
   hidden.clear(); $("search").value = "";
   render();
@@ -228,7 +228,7 @@ function render() {
       return `<td class="${cls}">${escapeHtml(v)}</td>`;
     }).join("");
     return `<tr class="${x.rec ? "tos" : ""}"><td>${x.no}</td>${x.tpsz.map(v => `<td>${escapeHtml(v)}</td>`).join("")}<td class="${x.rec ? "rec" : ""}">${x.rec ? dmy(x.rec) : ""}</td>` +
-      `<td class="b">${x.days ?? ""}</td><td class="l fd" ${bg}>${escapeHtml(x.fd)}</td>` +
+      `<td class="l fd" ${bg}>${escapeHtml(x.fd)}</td><td class="b">${x.days ?? ""}</td>` +
       (x.dem ? `<td class="b" ${bg}>${dmy(x.dem)}</td>` : `<td class="bad">CHECK</td>`) + `${rest}</tr>`;
   }).join("");
   $("result").classList.remove("hidden");
@@ -280,18 +280,18 @@ async function download() {
     const row = hr + 1 + n;
     ws.getRow(row).height = 20;
     const k = report.off;
-    const values = [x.no, ...x.tpsz, x.rec ? new Date(x.rec) : null, x.days, x.fd, x.dem ? new Date(x.dem) : "CHECK", ...x.rest];
+    const values = [x.no, ...x.tpsz, x.rec ? new Date(x.rec) : null, x.fd, x.days, x.dem ? new Date(x.dem) : "CHECK", ...x.rest];
     const stripe = fill(n % 2 ? "F7F9FC" : "FFFFFF");
     values.forEach((v, i) => {
       const c = ws.getCell(row, i + 1);
       c.value = v === "" ? null : v; c.font = { name: FONT }; c.fill = stripe; c.border = box;
       c.alignment = ["Consignee", "Freedays"].includes(header[i]) ? left : center;
     });
-    ws.getCell(row, 3 + k).font = { name: FONT, bold: true };
+    ws.getCell(row, 4 + k).font = { name: FONT, bold: true };
     const dc = ws.getCell(row, 5 + k);
     dc.numFmt = "DD/MM/YYYY"; dc.font = { name: FONT, bold: true };
     if (x.dem) {
-      dc.fill = fill(colors[ymd(x.dem)]); ws.getCell(row, 4 + k).fill = fill(colors[ymd(x.dem)]);
+      dc.fill = fill(colors[ymd(x.dem)]); ws.getCell(row, 3 + k).fill = fill(colors[ymd(x.dem)]);
     } else {
       dc.fill = fill("FF0000"); dc.font = { name: FONT, bold: true, color: { argb: "FFFFFFFF" } };
     }
@@ -299,7 +299,7 @@ async function download() {
     rc.numFmt = "DD/MM/YYYY";
     if (x.rec) {
       rc.font = { name: FONT, bold: true, color: { argb: "FFC00000" } }; rc.fill = fill("FCE4D6");
-      ws.getCell(row, 4 + k).font = { name: FONT, bold: true, color: { argb: "FFC00000" } };
+      ws.getCell(row, 3 + k).font = { name: FONT, bold: true, color: { argb: "FFC00000" } };
     }
     header.forEach((h, i) => {
       if (/receipt/i.test(h)) {

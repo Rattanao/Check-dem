@@ -43,8 +43,8 @@ Rattana's confirmed report format. Run the bundled script; do not rebuild the la
 The Excel source comes in several layouts (for example `SUR.xls` with POL | TPSZ | STATUS | B/L No. | Freedays | RECEIPT B/L | Consignee). The script does not depend on column positions:
 
 - The header row is the first row that contains a `Freedays` heading.
-- Headings used, matched by name in any column order: **Freedays** (required), **TPSZ**, **B/L No.**, **RECEIPT B/L**, **Consignee**. A heading that is missing from the source is left out of the report.
-- Every other heading (POL, STATUS, ...) is ignored.
+- Headings used, matched by name in any column order: **Freedays** (required), **TPSZ**, **B/L No.**, **POL**, **RECEIPT B/L**, **Consignee**. A heading that is missing from the source is left out of the report.
+- Every other heading (STATUS, ETA, Description, ...) is ignored. `TOS` is only looked for in the headings that are used.
 - The report always comes out in the same form, whatever the source looks like.
 
 ```bash
@@ -57,7 +57,7 @@ To add a heading, add it to `FIELDS` in `scripts/check_dem.py` and in `index.htm
 
 - Row 1 has a navy **CHECK DEM** banner.
 - Row 2 is one info line on light blue: จำนวน B/L + count in the first two columns, ต้นฉบับ + file name under Freedays and DEM., ATA + date in the last two columns. The cells between are empty.
-- Row 4 holds the table header, always in this order: No. | TPSZ | REC. | TOTAL | Freedays | DEM. | B/L No. | RECEIPT B/L | Consignee.
+- Row 4 holds the table header, always in this order: No. | TPSZ | REC. | Freedays | TOTAL | DEM. | B/L No. | POL | RECEIPT B/L | Consignee.
 - RECEIPT B/L has a yellow fill with red bold text. TOS and reefer rows have red bold Freedays text, and their REC. cell has an orange fill.
 - Column widths auto-fit the text, including bold/12pt ATA so it never shows `####`. The sheet is set to A4 portrait, 1 page wide, with the header row repeated on every printed page.
 
