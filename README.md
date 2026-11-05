@@ -35,7 +35,9 @@
 
 ## ใช้งานผ่านเว็บ (ไม่ต้องติดตั้งอะไร)
 
-เปิดที่ **https://rattanao.github.io/Check-dem/**
+เปิดที่ **https://rattanao.github.io/DO/checkdem.html** (ขั้น ① CHECK DEM ในเว็บ DO — คำนวณเสร็จ ผลส่งไปขั้น ② DO ให้เอง)
+
+ลิงก์เดิม https://rattanao.github.io/Check-dem/ จะพาไปหน้าใหม่ให้อัตโนมัติ
 
 คู่มือวิธีใช้แบบละเอียด: **https://rattanao.github.io/Check-dem/guide.html**
 
@@ -44,7 +46,7 @@
 3. ตารางบนหน้าจอจะแสดงสีตามวัน DEM. คลิกป้ายวันที่เพื่อซ่อนหรือแสดงวันนั้น และค้นหา B/L หรือ Consignee ได้
 4. กด **ดาวน์โหลด CHECK DEM.xlsx** จะได้ไฟล์ Excel รูปแบบเดียวกับที่โปรแกรม Python สร้าง
 
-ไฟล์ถูกประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่เท่านั้น ไม่มีการอัปโหลดข้อมูลไปที่ใด ตัวเว็บคือไฟล์ [`index.html`](index.html)
+ไฟล์ถูกประมวลผลในเบราว์เซอร์ของเครื่องที่ใช้อยู่เท่านั้น ไม่มีการอัปโหลดข้อมูลไปที่ใด ตัวเว็บอยู่ที่ [Rattanao/DO](https://github.com/Rattanao/DO) (`checkdem.html`)
 
 ## ติดตั้ง (สำหรับโปรแกรม Python)
 
@@ -86,7 +88,7 @@ python check_dem.py input/DEM-KMGY.xls 27/09/2026 D:/reports
 ## โครงสร้างโปรเจกต์
 
 ```
-index.html                เว็บ Check DEM (GitHub Pages)
+index.html                พาไปหน้า ① CHECK DEM ในเว็บ DO
 guide.html                หน้าวิธีใช้
 assets/hal-logo.png       โลโก้ Heung A Line
 check_dem.py              โปรแกรมหลัก
